@@ -1,0 +1,44 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pycache*/
+*.egg-info/
+*.egg
+dist/
+build/
+
+# CMake / build
+CMakeFiles/
+CMakeCache.txt
+cmake-build-debug/
+cmake_install.cmake
+Makefile
+Makefile.cmake
+install_manifest.txt
+*.dir/
+*.o
+*.obj
+*.so
+*.a
+*.lib
+*.ninja
+
+# PyCharm / IDE
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Python virtual environments
+venv/
+.env/
+.env.*
+
+# Misc
+*.log
