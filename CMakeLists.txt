@@ -14,3 +14,4 @@ add_executable(new_target src/my_math/bindings_math.cpp
         src/my_math/bindings_point.h
         src/my_math/bindings_main.cpp
         src/my_math/bindings_main.h)
+target_link_libraries(my_math PRIVATE pybind11::numpy)

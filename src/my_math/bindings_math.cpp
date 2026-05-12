@@ -4,6 +4,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 #include <vector>
 #include <random>
 #include <iostream>
@@ -51,7 +52,8 @@ void print_float()
 
 }
 
-std::pair<double, double> find_min_max(const std::vector<float> &arr)
+// 传统方法 需要进行拷贝，当数据达到千万级别，明显可以感觉到延迟
+std::pair<double, double> find_min_max(const std::vector<double> &arr)
 {
     if (arr.empty())
     {
@@ -78,6 +80,42 @@ std::pair<double, double> find_min_max(const std::vector<float> &arr)
 }
 
 
+// 新方法，不进行拷贝，直接操作数据所在的内存
+std::pair<double, double> find_min_max_nocopy(py::array_t<double> &arr)
+{
+    // 获取数组缓冲区描述符
+    py::buffer_info buffer = arr.request();
+    if (buffer.size == 0)
+    {
+        throw std::runtime_error("empty array");
+    }
+
+    if (buffer.ndim != 1)
+    {
+        throw std::runtime_error("only 1 dimensional");
+    }
+
+    const double *data = static_cast<const double *>(buffer.ptr);
+
+    double min = data[0];
+    double max = data[0];
+
+    for (size_t i = 1; i < buffer.size; i++)
+    {
+        if (data[i] < min)
+        {
+            min = data[i];
+        }
+        if (data[i] > max)
+        {
+            max = data[i];
+        }
+    }
+
+    return {min, max};
+
+}
+
 void init_math(py::module_ &m) {
     m.doc() = "pybind11 example plugin"; // 可选的模块文档字符串
     m.def("add", &add, "A function that adds two numbers");
@@ -85,4 +123,5 @@ void init_math(py::module_ &m) {
     m.def("sub", &sub, "A function that subs two numbers");
     m.def("print_float", &print_float, "A function that print random nmbers");
     m.def("find_min_max", &find_min_max,"A function that find min & max");
+    m.def("find_min_max_nocopy", &find_min_max_nocopy,"A function that find min & max without copy");
 }
