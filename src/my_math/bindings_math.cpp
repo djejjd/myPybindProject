@@ -5,6 +5,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <cstdlib>
+#include <ctime>
 #include <vector>
 #include <random>
 #include <iostream>
@@ -116,6 +118,36 @@ std::pair<double, double> find_min_max_nocopy(py::array_t<double> &arr)
 
 }
 
+py::array_t<double> generate_random_numbers_new(size_t count)
+{
+    double *arr = new double[count];
+
+    // 填充数据
+    for (size_t i = 0; i < count; i++)
+    {
+        arr[i] = (double)rand() / RAND_MAX;
+    }
+
+    // 创建 capsule，它会管理内存释放
+    py::capsule free_when_done(arr, [](void *f) {
+        // 数组销毁时，此 lambda 被调用
+        delete[] static_cast<double*>(f);
+        // 你可以在这里打日志查看：std::cout << "内存已释放\n";
+    });
+
+    // 返回 array_t 对象，参数说明：
+    //    - {size}：形状，一维数组，长度为 size
+    //    - {sizeof(double)}：strides，表示从元素 i 到 i+1 需要跳过的字节数
+    //    - data：数据指针
+    //    - free_when_done：所有权 capsule
+
+    return py::array_t<double>(
+        {count},
+        {sizeof(double)},
+        arr,
+        free_when_done);
+}
+
 void init_math(py::module_ &m) {
     m.doc() = "pybind11 example plugin"; // 可选的模块文档字符串
     m.def("add", &add, "A function that adds two numbers");
@@ -124,4 +156,5 @@ void init_math(py::module_ &m) {
     m.def("print_float", &print_float, "A function that print random nmbers");
     m.def("find_min_max", &find_min_max,"A function that find min & max");
     m.def("find_min_max_nocopy", &find_min_max_nocopy,"A function that find min & max without copy");
+    m.def("generate_random_numbers_new", &generate_random_numbers_new,"A function that random numbers");
 }
